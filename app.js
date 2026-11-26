@@ -12,3 +12,19 @@ toggleButton.addEventListener("click", () => {
     toggleButton.textContent = "Show";
   }
 });
+
+async function sha1(text) {
+  
+  const bytes = new TextEncoder().encode(text);
+ 
+  const hashBuffer =  await crypto.subtle.digest("SHA-1", bytes);
+
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+ 
+  const hex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  
+  return hex.toUpperCase();
+}
+
