@@ -3,12 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Password checker</title>
+  <title>Password Breach Checker</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
 <body>
   <h1>Password Breach Checker</h1>
   <p>Check if your password has appeared in a data breach — without it ever leaving your browser.</p>
+
+  <div>
+    <label for="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      autocomplete="new-password"
+      spellcheck="false"
+      autocapitalize="off"
+      autocorrect="off"
+    >
+    <button type="button" id="toggle">Show</button>
+  </div>
+
+  <section id="results" aria-live="polite">
+    <h2>Strength</h2>
+    <p id="strength"></p>
+
+    <h2>Breach check</h2>
+    <p id="breach"></p>
+
+    <h2>Feedback</h2>
+    <p id="feedback"></p>
+  </section>
 </body>
 </html>
