@@ -3,6 +3,9 @@ const passwordInput = document.getElementById("password");
 const toggleButton = document.getElementById("toggle");
 const breachOutput = document.getElementById("breach");
 
+let debounceTimer; // o "bilhete" do temporizador atual
+let latestRequestId = 0; // o número do pedido mais recente
+
 // Event for the toggleButton
 toggleButton.addEventListener("click", () => {
   if (passwordInput.type === "password") {
@@ -14,17 +17,32 @@ toggleButton.addEventListener("click", () => {
   }
 });
 
-passwordInput.addEventListener("change", async () => {
+passwordInput.addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+
   const password = passwordInput.value;
+
   if (password === "") {
+    latestRequestId++;
     breachOutput.textContent = "";
     return;
   }
+
+  debounceTimer = setTimeout(() => {
+    checkAndShow(password);
+  }, 500);
+});
+
+async function checkAndShow(password) {
+  const requestId = ++latestRequestId;
 
   breachOutput.textContent = "Checking...";
 
   try {
     const count = await checkPwned(password);
+
+    if (requestId !== latestRequestId) return;
+
     if (count > 0) {
       breachOutput.textContent = `This password appeared ${count.toLocaleString()} times in data breaches.`;
     } else {
@@ -32,9 +50,10 @@ passwordInput.addEventListener("change", async () => {
         "Not found in known breaches. This doesn't mean it's strong — check the strength below.";
     }
   } catch (error) {
+    if (requestId !== latestRequestId) return;
     breachOutput.textContent = "Something went wrong";
   }
-});
+}
 
 async function sha1(text) {
   const bytes = new TextEncoder().encode(text);
