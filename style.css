@@ -6,3 +6,7 @@ body {
   margin: 1rem auto;
   padding: 0 1rem;
 }
+#strength,
+#feedback{
+  white-space: pre-line;
+}

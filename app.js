@@ -2,9 +2,12 @@
 const passwordInput = document.getElementById("password");
 const toggleButton = document.getElementById("toggle");
 const breachOutput = document.getElementById("breach");
+const strengthOutput = document.getElementById("strength");
+const strengthMeter = document.getElementById("strength-meter");
+const feedbackOutput = document.getElementById("feedback");
 
-let debounceTimer; // o "bilhete" do temporizador atual
-let latestRequestId = 0; // o número do pedido mais recente
+let debounceTimer;
+let latestRequestId = 0;
 
 // Event for the toggleButton
 toggleButton.addEventListener("click", () => {
@@ -21,6 +24,7 @@ passwordInput.addEventListener("input", () => {
   clearTimeout(debounceTimer);
 
   const password = passwordInput.value;
+  showStrength(password);
 
   if (password === "") {
     latestRequestId++;
@@ -96,4 +100,38 @@ async function checkPwned(password) {
   const text = await res.text();
 
   return findSuffixCount(text, suffix);
+}
+
+function naiveEntropy(password) {
+  let poolSize = 0;
+  if (/[a-z]/.test(password)) poolSize += 26;
+  if (/[A-Z]/.test(password)) poolSize += 26;
+  if (/[0-9]/.test(password)) poolSize += 10;
+  if (/[^a-zA-Z0-9]/.test(password)) poolSize += 33;
+
+  if (poolSize === 0) return 0;
+  return password.length * Math.log2(poolSize);
+}
+
+function showStrength(password) {
+  if (password === "") {
+    strengthOutput.textContent = "";
+    feedbackOutput.textContent = "";
+    strengthMeter.value = 0;
+    return;
+  }
+
+  const entropy = Math.round(naiveEntropy(password));
+  const result = zxcvbn(password);
+
+  strengthMeter.value = result.score;
+  strengthOutput.textContent =
+    `Naive entropy: ${entropy} bits · zxcvbn score: ${result.score}/4 · \n` +
+    `Time to crack (offline with slow hashing): ${result.crack_times_display.offline_slow_hashing_1e4_per_second}\n` +
+    `Time to crack (offline with fast hashing): ${result.crack_times_display.offline_fast_hashing_1e10_per_second}`;
+
+  feedbackOutput.textContent = [
+    result.feedback.warning,
+    ...result.feedback.suggestions,
+  ].join(" ");
 }

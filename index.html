@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Password Breach Checker</title>
   <link rel="stylesheet" href="style.css">
+  <script src="vendor/zxcvbn.js" defer ></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -26,6 +27,7 @@
 
   <section id="results" aria-live="polite">
     <h2>Strength</h2>
+    <meter id="strength-meter" min="0" max="4" value="0"></meter>
     <p id="strength"></p>
 
     <h2>Breach check</h2>
