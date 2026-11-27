@@ -5,9 +5,15 @@ const breachOutput = document.getElementById("breach");
 const strengthOutput = document.getElementById("strength");
 const strengthMeter = document.getElementById("strength-meter");
 const feedbackOutput = document.getElementById("feedback");
+const generateButton = document.getElementById("generate");
+const passphraseOutput = document.getElementById("passphrase");
+const passphraseInfo = document.getElementById("passphrase-info");
 
 let debounceTimer;
 let latestRequestId = 0;
+let wordList = [];
+
+const WORD_COUNT = 5;
 
 // Event for the toggleButton
 toggleButton.addEventListener("click", () => {
@@ -35,6 +41,54 @@ passwordInput.addEventListener("input", () => {
   debounceTimer = setTimeout(() => {
     checkAndShow(password);
   }, 500);
+});
+
+async function loadWordList() {
+  const res = await fetch("wordlists/eff_large_wordlist.txt");
+
+  if (!res.ok) throw new Error("Could not load word list");
+
+  const text = await res.text();
+  wordList = text
+    .trim()
+    .split("\n")
+    .map((line) => line.split("\t")[1].trim());
+}
+
+function secureRandomInt(max) {
+  const limit = Math.floor(2 ** 32 / max) * max;
+  const buffer = new Uint32Array(1);
+
+  let value;
+
+  do {
+    crypto.getRandomValues(buffer);
+    value = buffer[0];
+  } while (value >= limit);
+  return value % max;
+}
+
+function generatePassphrase(count) {
+  const words = [];
+  for (let i = 0; i < count; i++) {
+    words.push(wordList[secureRandomInt(wordList.length)]);
+  }
+  return words.join("-");
+}
+
+generateButton.addEventListener("click", async () => {
+  try {
+    if (wordList.length === 0) {
+      await loadWordList();
+    }
+
+    passphraseOutput.textContent = generatePassphrase(WORD_COUNT);
+
+    const entropy = WORD_COUNT * Math.log2(wordList.length);
+    passphraseInfo.textContent = `${WORD_COUNT} words from a list of ${wordList.length} → ${entropy.toFixed(1)} bits of entropy`;
+  } catch (error) {
+    passphraseInfo.textContent = "Could not generate a passphrase";
+  }
 });
 
 async function checkAndShow(password) {
